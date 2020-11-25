@@ -1,5 +1,6 @@
 namespace wssserver
 {
+    using System;
     using System.Collections.Generic;
     using Fleck;
 
@@ -22,7 +23,6 @@ namespace wssserver
 
         public void closeClient()
         {
-            //socket.Send("{\"type\":\"status\"}");
             socket.Close();
         }
     }

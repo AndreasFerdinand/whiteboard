@@ -12,7 +12,6 @@ namespace wssserver
         public readonly string[] AllowedColors = new string[] {"canary","palepink","paleorange","limegreen","paleblue"};
 
         public Guid uuid {get;set;}
-        public string title {get;set;}
         public string content {get; set;}
         public string color {get; set;}
 
@@ -27,9 +26,6 @@ namespace wssserver
         {
             content = HttpUtility.HtmlEncode(content);
             content = content.ReplaceSymbols();
-
-            title = HttpUtility.HtmlEncode(title);
-            title = title.ReplaceSymbols();
 
             if ( !AllowedColors.Contains(color) )
             {

@@ -1,6 +1,7 @@
 namespace wssserver
 {
     using System.Collections.Generic;
+    using System.Collections.Concurrent;
     using Fleck;
     using System.Linq;
     using System.Text.Json;
@@ -12,21 +13,50 @@ namespace wssserver
         readonly string roomId;
         readonly string path;
 
-        Dictionary<IWebSocketConnection, Client> clients = new Dictionary<IWebSocketConnection, Client> ();
-        List <IOutboundMessage> history = new List<IOutboundMessage>();
+        ConcurrentDictionary<IWebSocketConnection, Client> clients = new ConcurrentDictionary<IWebSocketConnection, Client> ();
+        ConcurrentQueue <IOutboundMessage> history = new ConcurrentQueue<IOutboundMessage>();
 
         public string RoomId => roomId;
         public string Path => path;
+
+        protected DateTime lastHistoryModificationTime;
+        protected DateTime lastHistoryBackupTime;
+
+        protected System.Timers.Timer timer;
 
         public Room(string roomId, string path)
         {
             this.roomId = roomId;
             this.path = path;
+
+            lastHistoryModificationTime = DateTime.Now;
+            lastHistoryBackupTime = lastHistoryModificationTime;
+
+            timer = new System.Timers.Timer();
+            timer.Elapsed += new System.Timers.ElapsedEventHandler(BackupHistory);
+            timer.Interval = 5000;
+            timer.Enabled = true;
+        }
+
+        public void BackupHistory(Object source, System.Timers.ElapsedEventArgs e)
+        {
+            if ( lastHistoryBackupTime < lastHistoryModificationTime )
+            {
+                DateTime backupTime = DateTime.Now;
+
+                System.IO.Directory.CreateDirectory("backup");
+
+                //string historyJson = JsonSerializer.Serialize(history.ToArray());
+
+                System.IO.File.WriteAllText("backup/" + RoomId + "_" + backupTime.ToString(), getHistoryMessage());
+
+                lastHistoryBackupTime = backupTime;
+            }
         }
 
         public void addClient(IWebSocketConnection socket)
         {
-            clients.Add(socket, new Client(socket));
+            clients.TryAdd(socket, new Client(socket));
         }
 
         public List<string> getUser()
@@ -74,25 +104,25 @@ namespace wssserver
 
         public string getHistoryMessage()
         {
-                StringBuilder historyMessageBuilder = new StringBuilder();
+                var tempHistoryMessages = new List<string>();
+                string historyMessageContent = "";
 
-                int totalCount = history.Count();
-                for (int count = 0; count < totalCount; count++)
+                foreach(var msg in history)
                 {
-                    var result = history[count];
+                    string messagecontent = msg?.getOutboundMessageAsJson();
 
-                    if ( (count + 1) == totalCount )
+                    if ( !string.IsNullOrEmpty(messagecontent))
                     {
-                        historyMessageBuilder.Append(result.getOutboundMessageAsJson());
-                    }
-                    else
-                    {
-                        historyMessageBuilder.Append(result.getOutboundMessageAsJson());
-                        historyMessageBuilder.Append(",");
+                        tempHistoryMessages.Add(messagecontent);
                     }
                 }
 
-                string historyMessage = "{ \"type\":\"History\", \"history\": [ " + historyMessageBuilder.ToString() + " ] }";
+                if ( tempHistoryMessages.Count > 0 )
+                {
+                    historyMessageContent = string.Join(',',tempHistoryMessages);
+                }
+
+                string historyMessage = "{ \"type\":\"History\", \"history\": [ " + historyMessageContent + " ] }";
 
                 return historyMessage;
         }
@@ -123,29 +153,31 @@ namespace wssserver
             {
                 broadCastMessage(message);
             }
-
         }
 
         public void broadCastMessage(string message)
         {
-            history.Add(new RawMessage(message));
+            lastHistoryModificationTime = DateTime.Now;
+            history.Enqueue(new RawMessage(message));
 
-            clients.ToList().ForEach(s => s.Value.sendMessage(message));
+            clients.ToList().ForEach(s => s.Value?.sendMessage(message));
         }
 
         public void deleteClient(IWebSocketConnection socket)
         {
-            clients[socket].closeClient();
+            Client client;
 
-            clients.Remove(socket);
+            clients.TryRemove(socket,out client);
+
+            client?.closeClient();
         }
 
         public void closeRoom()
         {
-            clients.ToList().ForEach(s => s.Value.closeClient());
-            clients.Clear();
+            foreach( var client in clients.Keys )
+            {
+                deleteClient(client);
+            }
         }
-
     }
-
 }

@@ -28,8 +28,6 @@ namespace wssserver
             foreach (KeyValuePair<string,string> kvp in symbols)
             {
                 tempstr = tempstr.Replace(kvp.Key,kvp.Value);
-
-                Console.WriteLine(tempstr + ": " + kvp.Key + " " + kvp.Value);
             }
 
             return tempstr;
