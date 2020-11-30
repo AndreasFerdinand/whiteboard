@@ -27,7 +27,12 @@ namespace wssserver
 
         public virtual void processOutbound()
         {
-            room.broadCastMessage(getOutboundMessageAsJson());
+            string messageToSend = getOutboundMessageAsJson();
+
+            if ( messageToSend != "" )
+            {
+                room.broadCastMessage(messageToSend);
+            }
         }
     }
 }

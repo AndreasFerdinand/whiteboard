@@ -54,6 +54,11 @@ namespace wssserver
             }
         }
 
+        public void setUser(IWebSocketConnection socketConnection, string user)
+        {
+            clients[socketConnection].User = new User(user);
+        }
+
         public void addClient(IWebSocketConnection socket)
         {
             clients.TryAdd(socket, new Client(socket));
@@ -131,18 +136,12 @@ namespace wssserver
         {
             OLDMessage receivedMessage = JsonSerializer.Deserialize<OLDMessage>(message);
 
-
-            if ( receivedMessage.type == "User"  )
-            {
-                User receivedUser = JsonSerializer.Deserialize<User>(message);
-
-                clients[socket].User = receivedUser;
-            }
-            else if ( receivedMessage.type == "GetUser"  )
+            if ( receivedMessage.type == "GetUser"  )
             {
                 socket.Send( getUserMessage() );
             }
-            else if ( receivedMessage.type == "ChatMessage" || receivedMessage.type == "GetHistory" || receivedMessage.type == "AddStickyNote" )
+            else if ( receivedMessage.type == "ChatMessage" || receivedMessage.type == "GetHistory" ||
+                      receivedMessage.type == "AddStickyNote" || receivedMessage.type == "User" )
             {
                 IMessage msg = MessageFactory.createMessageFromString(message,this,socket);
 

@@ -39,6 +39,10 @@ namespace wssserver
                     inboundMessage = JsonSerializer.Deserialize<AddStickyNoteMessage>(JsonMessage);
                     break;
 
+                case UserMessage.MessageType:
+                    inboundMessage = JsonSerializer.Deserialize<UserMessage>(JsonMessage);
+                    break;
+
                 default:
                     throw new Exception("Unknown Message type");
             }
