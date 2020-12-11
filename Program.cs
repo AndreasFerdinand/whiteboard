@@ -15,6 +15,8 @@ namespace wssserver
             //var allSockets = new List<IWebSocketConnection>();
             var server = new WebSocketServer("ws://0.0.0.0:8181");
 
+            server.SupportedSubProtocols = new []{ "whiteboard" };
+
             ConcurrentDictionary<string, Room> rooms = new ConcurrentDictionary<string, Room> ();
 
             server.Start(socket =>

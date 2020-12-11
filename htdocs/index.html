@@ -279,7 +279,7 @@
               let connectionURL = "ws://localhost:8181/" + $("#WhiteboardNameInput").val();
               console.log("Try to connect to: " + connectionURL);
 
-              Socket =  new WebSocket(connectionURL, "protocolOne");
+              Socket =  new WebSocket(connectionURL, "whiteboard");
 
               Socket.onopen  = function (event) {
                 console.log("Connected to Server");
