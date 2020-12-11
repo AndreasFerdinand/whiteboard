@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link  href="http://fonts.googleapis.com/css?family=Reenie+Beanie:regular" rel="stylesheet" type="text/css"> 
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css?x=13" />
+
+    <title>Hello, world!</title>
+  </head>
+  <body>
+    <h1>Hello, world!</h1>
+
+
+<div class="well">
+    <button type="button" id="newStickyNote" class="btn">New StickyNote</button>
+</div>
+<div id="myForm" class="d-none">
+    <form action="/echo/html/" id="popForm" method="get">
+        <div>
+        
+   <label class="radio-inline">
+      <input type="radio" name="color" value="canary" checked>Canary
+    </label>
+    <label class="radio-inline">
+      <input type="radio" name="color" value="limegreen">Limegreen
+    </label>
+    <label class="radio-inline">
+      <input type="radio" name="color" value="paleblue">paleblue
+    </label>
+        
+        
+            <label for="title">Titel:</label>
+            <input type="text" name="title" id="title" class="form-control input-md">
+            <label for="content">Inhalt:</label>
+            <textarea rows="3" name="content" id="content" class="form-control input-md"></textarea>
+            <button type="button" class="btn btn-primary" data-loading-text="Sending info.."><em class="icon-ok"></em> Save</button>
+        </div>
+    </form>
+</div>
+
+
+
+
+  <ul id="stickyboard">
+
+  </ul>
+
+
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    
+<script>
+
+
+function uuidv4() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  );
+}
+
+function htmlEntities(str) {
+    return String(str).replace(/(?:\r\n|\r|\n)/g, ' ').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function isEmptyOrSpaces(str){
+    return str === null || str.match(/^ *$/) !== null;
+}
+
+function processReceivedMessage(msg)
+{
+  	if ( msg.type === 'AddStickyNote' )
+  	{
+  		$('<li id="' + msg.uuid + '"><a href="#" id="link_' + msg.uuid + '" class="sticky_color_' + msg.color + '"><h2>' + msg.title + '</h2><p>' + msg.content +  '</p></a></li>').appendTo('#stickyboard');
+  	}
+  	
+  	if ( msg.type === 'DeleteStickyNote' )
+  	{
+  		$( "#" + msg.uuid ).remove( );
+  	}
+  	
+  	if ( msg.type === 'UpvoteStickyNote' )
+  	{
+  		let counter = $( '#like_counter_' + msg.uuid );
+  		
+  		if ( counter.length )
+  		{
+  			console.log("incrementing counter");
+  			$( '#like_counter_' + msg.uuid ).text( parseInt(counter.text(),10) + 1 );
+  		}
+  		else
+  		{
+  			console.log("creating new badge");
+  			$('<span class="badge badge-success" id="like_counter_' + msg.uuid + '">1</span>').appendTo('#link_' + msg.uuid);
+  		}
+  	}
+}
+
+
+$(document).ready(function()
+{
+
+
+$(function(){
+    $('#newStickyNote').popover({      
+    	sanitize: false,
+        placement: 'bottom',
+        title: 'Popover Form',
+        html:true,
+        content:  $('#myForm').html()
+    }).on('click', function(){
+      // had to put it within the on click action so it grabs the correct info on submit
+      $('.btn-primary').click(function(){
+      
+      	let title = $(".popover #title").val();
+      	let content = htmlEntities( $(".popover #content").val() );
+
+	let color = document.querySelector('.popover input[name="color"]:checked').value;
+	
+	console.log(color);
+
+       if (!( isEmptyOrSpaces( title ) && isEmptyOrSpaces( content ) ))
+       {
+          exampleSocket.send('{  "type" : "AddStickyNote",  "uuid" : "' + uuidv4() + '", "title" : "' + title + '",  "content" : "' + content +  '", "color":"' + color + '" }'); 
+        }
+
+          $('.popover').popover('hide');
+
+      })
+  })
+});
+
+
+
+
+
+
+console.log("Connecting");
+var exampleSocket = new WebSocket("ws://localhost:8181", "protocolOne");
+
+exampleSocket.onopen = function (event) {
+console.log("connected");
+  exampleSocket.send('{"type":"User","name":"Peter"}'); 
+  exampleSocket.send('{"type":"GetHistory"}'); 
+};
+
+exampleSocket.onmessage = function (event) {
+  console.log(event.data);
+  
+  var msg = JSON.parse(event.data);
+  
+
+  if ( typeof msg !== 'undefined' )
+  {
+  	if ( msg.type === 'History' )
+  	{
+  		console.log("Processing History");
+  		msg.history.forEach( currentmsg => processReceivedMessage(currentmsg) );
+  	}
+  	else
+  	{
+  		processReceivedMessage(msg);
+  	}
+  }
+  
+  
+  
+}
+
+
+});
+    </script>
+    
+  </body>
+</html>

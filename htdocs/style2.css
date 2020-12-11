@@ -1,0 +1,108 @@
+.wrapper {
+    display: flex;
+    align-items: stretch;
+}
+
+#sidebar {
+    min-width: 25%;
+    max-width: 25%;
+    min-height: 100vh;
+    background: #7386D5;
+    color: #fff;
+    transition: all 0.3s;
+}
+
+#sidebar.active {
+    margin-left: -25%;
+}
+
+#sidebar .sidebar-header {
+    padding: 20px;
+    background: #6d7fcc;
+}
+
+#content {
+  padding: 20px;
+}
+
+#sidebar .sidebar-content {
+
+}
+
+#sidebar .sidebar-row {
+  padding-top: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+#chatprotocol {
+  max-height: 300px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  background: #7386d5;
+  //scrollbar-width: none;
+}
+
+.sidebarcolor2{
+      background: #6d7fcc;
+}
+
+.chatmessage {
+   overflow-wrap: break-word;
+}
+
+body
+{
+  margin: 0px;
+}
+
+.noteuser {
+  z-index: 1;
+  position: absolute;
+  bottom: -10px;
+  left: -10px;
+  padding: 5px 10px;
+  //background-color: #d9534f;
+}
+
+.notevote {
+  z-index: 1;
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  padding: 5px 10px;
+  border-radius: 50%;
+/*  background: red;
+  color: white;*/
+}
+
+.notebar {
+  z-index: 1;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+
+.notebutton {
+margin-right: 5px;
+}
+
+
+
+/* HIDE RADIO */
+[type=radio] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* IMAGE STYLES */
+[type=radio] + img {
+  cursor: pointer;
+}
+
+/* CHECKED STYLES */
+[type=radio]:checked + img {
+  outline: 2px solid #f00;
+}

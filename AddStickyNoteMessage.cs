@@ -9,7 +9,7 @@ namespace wssserver
     {
         public const string MessageType = "AddStickyNote";
         public const string DefaultNoteColor = "canary";
-        public readonly string[] AllowedColors = new string[] {"canary","palepink","paleorange","limegreen","paleblue"};
+        public readonly string[] AllowedColors = new string[] {"canary","palepink","paleorange","limegreen","paleblue","bananayellow"};
 
         public Guid uuid {get;set;}
         public string content {get; set;}
